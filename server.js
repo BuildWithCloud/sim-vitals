@@ -13,6 +13,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Operator-selected targets
 let targetState = {
   spo2: 98,
+  resp: 16,
   hr: 72,
   bpsys: 120,
   bpdia: 80,
@@ -24,6 +25,7 @@ let targetState = {
 // Authoritative live values streamed to every client
 let liveState = {
   spo2: 98,
+  resp: 16,
   hr: 72,
   bpsys: 120,
   bpdia: 80,
@@ -35,8 +37,8 @@ let liveState = {
 let transition = {
   startMs: Date.now(),
   endMs: Date.now(),
-  from: { spo2: 98, hr: 72, bpsys: 120, bpdia: 80 },
-  to: { spo2: 98, hr: 72, bpsys: 120, bpdia: 80 }
+  from: { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80 },
+  to: { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80 }
 };
 
 function clamp01(x) {
@@ -51,6 +53,7 @@ function beginTransition({ immediate = false } = {}) {
   const durationMs = immediate ? 0 : durationSec * 1000;
   const targetValues = {
     spo2: targetState.spo2,
+    resp: targetState.resp,
     hr: targetState.hr,
     bpsys: targetState.bpsys,
     bpdia: targetState.bpdia,
@@ -60,6 +63,7 @@ function beginTransition({ immediate = false } = {}) {
   transition.endMs = now + durationMs;
   transition.from = {
     spo2: liveState.spo2,
+    resp: liveState.resp,
     hr: liveState.hr,
     bpsys: liveState.bpsys,
     bpdia: liveState.bpdia,
@@ -72,6 +76,7 @@ function beginTransition({ immediate = false } = {}) {
 
   if (durationMs === 0) {
     liveState.spo2 = targetValues.spo2;
+    liveState.resp = targetValues.resp;
     liveState.hr = targetValues.hr;
     liveState.bpsys = targetValues.bpsys;
     liveState.bpdia = targetValues.bpdia;
@@ -86,6 +91,7 @@ function tickTransition() {
   const t = clamp01((now - transition.startMs) / total);
 
   liveState.spo2 = transition.from.spo2 + (transition.to.spo2 - transition.from.spo2) * t;
+  liveState.resp = transition.from.resp + (transition.to.resp - transition.from.resp) * t;
   liveState.hr = transition.from.hr + (transition.to.hr - transition.from.hr) * t;
   liveState.bpsys = transition.from.bpsys + (transition.to.bpsys - transition.from.bpsys) * t;
   liveState.bpdia = transition.from.bpdia + (transition.to.bpdia - transition.from.bpdia) * t;

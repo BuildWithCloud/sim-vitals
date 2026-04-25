@@ -63,6 +63,7 @@
     .readout-item { flex: 1; }
     .readout-label { font-size: 9px; letter-spacing: 0.3em; color: var(--muted2); margin-bottom: 4px; }
     .readout-val   { font-size: 28px; font-weight: 700; color: var(--label); }
+    #live resp-val  { color: var(--label); }
     #live-hr-val   { color: var(--label); }
     #live-bp-val   { color: var(--label); }
 
@@ -202,6 +203,10 @@
       <div class="readout-val" id="live-spo2-val">98<span style="font-size:14px;opacity:0.5">%</span></div>
     </div>
     <div class="readout-item">
+      <div class="readout-label">CURRENT RESP</div>
+      <div class="readout-val" id="live-resp-val">16<span style="font-size:14px;opacity:0.5"> bpm</span></div>
+    </div>
+    <div class="readout-item">
       <div class="readout-label">CURRENT HR</div>
       <div class="readout-val" id="live-hr-val">72<span style="font-size:14px;opacity:0.5"> bpm</span></div>
     </div>
@@ -237,6 +242,14 @@
       <input type="range" id="spo2-slider" min="50" max="100" value="98" step="1">
       <span class="slider-values">
         <span class="slider-val" id="spo2-slider-val">98%</span>
+      </span>
+    </div>
+
+    <div class="slider-row">
+      <span class="slider-name">Resp Rate</span>
+      <input type="range" id="resp-slider" min="5" max="40" value="16" step="1">
+      <span class="slider-values">
+        <span class="slider-val" id="resp-slider-val">16 brpm</span>
       </span>
     </div>
 
@@ -284,8 +297,8 @@ const badge  = document.getElementById('conn-badge');
 socket.on('connect',    () => { badge.textContent = 'CONNECTED'; badge.className = 'conn-badge ok'; });
 socket.on('disconnect', () => { badge.textContent = 'DISCONNECTED'; badge.className = 'conn-badge err'; });
 
-let currentState = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
-let targetState = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
+let currentState = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
+let targetState = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
 
 socket.on('state', (s) => {
   currentState = { ...currentState, ...s };
@@ -315,19 +328,23 @@ function send(patch) {
 // ── Sync UI to state ──────────────────────────────────
 function syncUI() {
   const roundedSpo2 = Math.round(currentState.spo2);
+  const roundedResp = Math.round(currentState.resp);
   const roundedHr = Math.round(currentState.hr);
   const roundedBPSys = Math.round(currentState.bpsys);
   const roundedBPDia = Math.round(currentState.bpdia);
   const viewSpo2 = targetState.spo2;
+  const viewResp = targetState.resp;
   const viewHr = targetState.hr;
   const viewBPSys = targetState.bpsys;
   const viewBPDia = targetState.bpdia;
   const roundedViewSpo2 = Math.round(viewSpo2);
+  const roundedViewResp = Math.round(viewResp);
   const roundedViewHr = Math.round(viewHr);
   const roundedViewBPSys = Math.round(viewBPSys);
   const roundedViewBPDia = Math.round(viewBPDia);
 
   const liveSpo2El = document.getElementById('live-spo2-val');
+  const liveRespEl = document.getElementById('live-resp-val');
   const liveHrEl = document.getElementById('live-hr-val');
   const liveBpEl = document.getElementById('live-bp-val');
 
@@ -347,11 +364,17 @@ function syncUI() {
           : roundedHr >= 41  ? 'var(--yellow)'
           : 'var(--red)';
     liveHrEl.style.color = HRcolor;
+    
+    // Resp
+    liveRespEl.innerHTML = `${roundedResp}<span style="font-size:14px;opacity:0.5"> bpm</span>`;
   } else {
     liveSpo2El.innerHTML = '<span style="color:var(--label)">---</span>';
     liveSpo2El.style.color = 'var(--label)';
     liveHrEl.innerHTML = '<span style="color:var(--label)">---</span>';
     liveHrEl.style.color = 'var(--label)';
+    liveRespEl.innerHTML = '<span style="color:var(--label)">---</span>';
+    liveRespEl.style.color = 'var(--label)';
+
   }
 
   if (currentState.bpCuffOn) {
@@ -370,10 +393,12 @@ function syncUI() {
 
   // Sliders
   document.getElementById('spo2-slider').value = viewSpo2;
+  document.getElementById('resp-slider').value = viewResp;
   document.getElementById('hr-slider').value   = viewHr;
   document.getElementById('bpsys-slider').value = viewBPSys;
   document.getElementById('bpdia-slider').value = viewBPDia;
   document.getElementById('spo2-slider-val').textContent = `${roundedViewSpo2}%`;
+  document.getElementById('resp-slider-val').textContent = `${roundedViewResp}`;
   document.getElementById('hr-slider-val').textContent   = `${roundedViewHr}`;
   document.getElementById('bpsys-slider-val').textContent = `${roundedViewBPSys}`;
   document.getElementById('bpdia-slider-val').textContent = `${roundedViewBPDia}`;
@@ -428,6 +453,7 @@ function hookSlider(id, valId, key, suffix = '') {
   });
 }
 hookSlider('spo2-slider', 'spo2-slider-val', 'spo2', '%');
+hookSlider('resp-slider', 'resp-slider-val', 'resp');
 hookSlider('hr-slider',   'hr-slider-val',   'hr');
 hookSlider('bpsys-slider', 'bpsys-slider-val', 'bpsys');
 hookSlider('bpdia-slider', 'bpdia-slider-val', 'bpdia');

@@ -72,7 +72,7 @@
       font-weight: 700;
       line-height: 1;
       letter-spacing: -2px;
-      color: var(--green);
+      color: var(--label);
       transition: color 0.2s;
     }
     .spo2-pct {
@@ -81,6 +81,25 @@
       color: var(--label);
       padding-bottom: 12px;
     }
+
+    /* ── Resp Rate block ───────────────────────────── */
+    .resp-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 24px;
+    }
+    .resp-row { display: flex; align-items: baseline; gap: 10px; }
+    #resp-val {
+      font-size: clamp(90px, 28vw, 130px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--label);
+      transition: color 0.2s;
+    }
+    .resp-brpm  { font-size: 14px; color: var(--label); }
+
 
     /* ── HR block ────────────────────────────────────── */
     .hr-block {
@@ -95,7 +114,7 @@
       font-size: clamp(90px, 28vw, 130px);
       font-weight: 700;
       line-height: 1;
-      color: var(--green);
+      color: var(--label);
       transition: color 0.2s;
     }
     .hr-bpm  { font-size: 14px; color: var(--label); }
@@ -114,7 +133,7 @@
       font-size: min(clamp(78px, 24vw, 120px), calc((100cqi - 40px) / 4.5));
       font-weight: 700;
       line-height: 1;
-      color: var(--green);
+      color: var(--label);
       transition: color 0.2s;
       white-space: nowrap;
     }
@@ -137,6 +156,14 @@
   </div>
 </div>
 
+<div class="resp-block">
+  <div class="ch-label">Resp Rate</div>
+  <div class="resp-row">
+    <span id="resp-val">---</span>
+    <span class="resp-brpm">brpm</span>
+  </div>
+</div>
+
 <div class="hr-block">
   <div class="ch-label">Pulse Rate</div>
   <div class="hr-row">
@@ -156,12 +183,13 @@
 
 <script>
 // ── State ─────────────────────────────────────────────
-let current = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true};
+let current = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true};
 
 // ── Socket ────────────────────────────────────────────
 const socket = io();
 const connEl = document.getElementById('conn');
 const spo2El = document.getElementById('spo2-val');
+const respEl = document.getElementById('resp-val');
 const hrEl = document.getElementById('hr-val');
 const bpEl = document.getElementById('bp-val');
 socket.on('connect',    () => { connEl.className = 'conn ok'; });
@@ -176,6 +204,7 @@ function animate() {
 
   // DOM updates
   const spo2Round = Math.round(current.spo2);
+  const respRound = Math.round(current.resp);
   const hrRound   = Math.round(current.hr);
   const bpSysRound = Math.round(current.bpsys);
   const bpDiaRound = Math.round(current.bpdia);
@@ -183,6 +212,7 @@ function animate() {
   if (current.SpO2On) {
     
     spo2El.textContent = spo2Round;
+    respEl.textContent = respRound;
     hrEl.textContent = hrRound;
 
     // SpO₂ colour thresholds
@@ -191,6 +221,7 @@ function animate() {
                 : spo2Round >= 92 ? 'var(--orange)'
                 : 'var(--red)';
     spo2El.style.color = SpO2color;
+    
 
     // HR colour thresholds
     const HRcolor = hrRound >= 131 ? 'var(--red)'
@@ -201,7 +232,18 @@ function animate() {
                 : 'var(--red)';
     hrEl.style.color = HRcolor;
 
+
+
   }
+  else{
+    spo2El.textContent = '---';
+    spo2El.style.color = 'var(--label)';
+    respEl.textContent = '---';
+    respEl.style.color = 'var(--label)';
+    hrEl.textContent = '---';
+    hrEl.style.color = 'var(--label)';
+  }
+
   if(current.bpCuffOn){
     // BP colour thresholds (based on systolic)
     const BPcolor = bpSysRound >= 220 ? 'var(--red)'
@@ -210,18 +252,10 @@ function animate() {
                 : bpSysRound >= 91   ? 'var(--orange)'
                 : 'var(--red)';
     bpEl.style.color = BPcolor;
-  }
-
-  else{
-    spo2El.textContent = '---';
-    spo2El.style.color = 'var(--label)';
-    hrEl.textContent = '---';
-    hrEl.style.color = 'var(--label)';
-  }
-  if(current.bpCuffOn){
     bpEl.textContent = `${bpSysRound}/${bpDiaRound}`;
   }
   else{
+    bpEl.style.color = 'var(--label)';
     bpEl.textContent = '---/---';
   }
 
