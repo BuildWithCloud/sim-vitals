@@ -13,7 +13,8 @@
       --cyan:   #00d4ff;
       --green:  #00e676;
       --yellow: #ffeb3b;
-      --red:    #ff1744;
+      --orange: #ff9900;
+      --red:    #ff0033;
       --dim:    #1c1c1c;
       --muted:  #2e2e2e;
       --label:  #D3D3D3;
@@ -185,12 +186,30 @@ function animate() {
     hrEl.textContent = hrRound;
 
     // SpO₂ colour thresholds
-    const color = spo2Round >= 95 ? 'var(--green)'
-                : spo2Round >= 90 ? 'var(--yellow)'
+    const SpO2color = spo2Round >= 96 ? 'var(--green)'
+                : spo2Round >= 94 ? 'var(--yellow)'
+                : spo2Round >= 92 ? 'var(--orange)'
                 : 'var(--red)';
-    spo2El.style.color = color;
-    hrEl.style.color = 'var(--label)';
+    spo2El.style.color = SpO2color;
+
+    // HR colour thresholds
+    const HRcolor = hrRound >= 131 ? 'var(--red)'
+                : hrRound >= 111 ? 'var(--orange)'
+                : hrRound >= 91  ? 'var(--yellow)'
+                : hrRound > 51   ? 'var(--green)'
+                : hrRound >= 41  ? 'var(--yellow)'
+                : 'var(--red)';
+    hrEl.style.color = HRcolor;
+
+    // BP colour thresholds (based on systolic)
+    const BPcolor = bpSysRound >= 220 ? 'var(--red)'
+                : bpSysRound >= 111 ? 'var(--green)'
+                : bpSysRound >= 101  ? 'var(--yellow)'
+                : bpSysRound >= 91   ? 'var(--orange)'
+                : 'var(--red)';
+    bpEl.style.color = BPcolor;
   }
+
   else{
     spo2El.textContent = '---';
     spo2El.style.color = 'var(--label)';
@@ -199,11 +218,9 @@ function animate() {
   }
   if(current.bpCuffOn){
     bpEl.textContent = `${bpSysRound}/${bpDiaRound}`;
-    bpEl.style.color = 'var(--label)';
   }
   else{
     bpEl.textContent = '---/---';
-    bpEl.style.color = 'var(--label)';
   }
 
   requestAnimationFrame(animate);
