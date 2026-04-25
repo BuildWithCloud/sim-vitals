@@ -232,8 +232,13 @@ function animate() {
                 : 'var(--red)';
     hrEl.style.color = HRcolor;
 
-
-
+    const RespColor = respRound >= 25 ? 'var(--red)'
+                : respRound >= 21 ? 'var(--orange)'
+                : respRound >= 12 ? 'var(--green)'
+                : respRound >= 9  ? 'var(--yellow)'
+                : 'var(--red)';
+    respEl.style.color = RespColor;
+    
   }
   else{
     spo2El.textContent = '---';
