@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>SimOx</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    :root {
+      --bg:     #000000;
+      --cyan:   #00d4ff;
+      --green:  #00e676;
+      --yellow: #ffeb3b;
+      --red:    #ff1744;
+      --dim:    #1c1c1c;
+      --muted:  #2e2e2e;
+      --label:  #D3D3D3;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: var(--bg); overflow: hidden; }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;           /* dynamic viewport for iPhone notch */
+      font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
+      user-select: none;
+    }
+
+    /* ── Header bar ─────────────────────────────────── */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px 6px;
+      flex-shrink: 0;
+    }
+    .brand { font-size: 10px; letter-spacing: 0.3em; color: #2a2a2a; }
+    .conn  {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.5s;
+    }
+    .conn.ok  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .conn.err { background: var(--red);   animation: blink 0.5s infinite; }
+
+
+
+/* ── Channel labels ─────────────────────────────── */
+    .ch-label {
+      font-size: 18px;
+      letter-spacing: 0.25em;
+      margin-bottom: 2px;
+      color: var(--label);
+    }
+
+    /* ── SpO₂ block ─────────────────────────────────── */
+    .spo2-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 24px;
+    }
+    
+    .spo2-row { display: flex; align-items: flex-end; gap: 6px; }
+    #spo2-val {
+      font-size: clamp(90px, 28vw, 130px);
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -2px;
+      color: var(--green);
+      transition: color 0.2s;
+    }
+    .spo2-pct {
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--label);
+      padding-bottom: 12px;
+    }
+
+    /* ── HR block ────────────────────────────────────── */
+    .hr-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 24px;
+    }
+    .hr-row { display: flex; align-items: baseline; gap: 10px; }
+    #hr-val {
+      font-size: clamp(90px, 28vw, 130px);
+      font-weight: 700;
+      line-height: 1;
+      color: var(--green);
+      transition: color 0.2s;
+    }
+    .hr-bpm  { font-size: 14px; color: var(--label); }
+
+    /* ── BP block ────────────────────────────────────── */
+    .bp-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 24px;
+    }
+
+    .bp-row { display: flex; align-items: baseline; gap: 6px; container-type: inline-size; }
+    #bp-val {
+      font-size: min(clamp(78px, 24vw, 120px), calc((100cqi - 40px) / 4.5));
+      font-weight: 700;
+      line-height: 1;
+      color: var(--green);
+      transition: color 0.2s;
+      white-space: nowrap;
+    }
+    .bp-mmhg  { font-size: 14px; color: var(--label); flex: 0 0 3.5ch; }
+
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <span class="brand">SIMOX · SPO₂</span>
+  <div class="conn" id="conn"></div>
+</div>
+
+<div class="spo2-block">
+  <div class="ch-label">SpO₂</div>
+  <div class="spo2-row">
+    <span id="spo2-val">---</span>
+    <span class="spo2-pct">%</span>
+  </div>
+</div>
+
+<div class="hr-block">
+  <div class="ch-label">Pulse Rate</div>
+  <div class="hr-row">
+    <span id="hr-val">---</span>
+    <span class="hr-bpm">bpm</span>
+  </div>
+</div>
+
+<div class="bp-block">
+  <div class="ch-label">NIBP</div>
+  <div class="bp-row">
+    <span id="bp-val">---</span>
+    <span class="bp-mmhg">mmHg</span>
+  </div>
+</div>
+
+
+<script>
+// ── State ─────────────────────────────────────────────
+let current = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true};
+
+// ── Socket ────────────────────────────────────────────
+const socket = io();
+const connEl = document.getElementById('conn');
+const spo2El = document.getElementById('spo2-val');
+const hrEl = document.getElementById('hr-val');
+const bpEl = document.getElementById('bp-val');
+socket.on('connect',    () => { connEl.className = 'conn ok'; });
+socket.on('disconnect', () => { connEl.className = 'conn err'; });
+socket.on('state', (s)  => { current = { ...current, ...s }; });
+
+
+
+
+// ── Main animation loop ───────────────────────────────
+function animate() {
+
+  // DOM updates
+  const spo2Round = Math.round(current.spo2);
+  const hrRound   = Math.round(current.hr);
+  const bpSysRound = Math.round(current.bpsys);
+  const bpDiaRound = Math.round(current.bpdia);
+
+  if (current.SpO2On) {
+    
+    spo2El.textContent = spo2Round;
+    hrEl.textContent = hrRound;
+
+    // SpO₂ colour thresholds
+    const color = spo2Round >= 95 ? 'var(--green)'
+                : spo2Round >= 90 ? 'var(--yellow)'
+                : 'var(--red)';
+    spo2El.style.color = color;
+    hrEl.style.color = 'var(--label)';
+  }
+  else{
+    spo2El.textContent = '---';
+    spo2El.style.color = 'var(--label)';
+    hrEl.textContent = '---';
+    hrEl.style.color = 'var(--label)';
+  }
+  if(current.bpCuffOn){
+    bpEl.textContent = `${bpSysRound}/${bpDiaRound}`;
+    bpEl.style.color = 'var(--label)';
+  }
+  else{
+    bpEl.textContent = '---/---';
+    bpEl.style.color = 'var(--label)';
+  }
+
+  requestAnimationFrame(animate);
+}
+
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>
