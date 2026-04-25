@@ -201,6 +201,8 @@ function animate() {
                 : 'var(--red)';
     hrEl.style.color = HRcolor;
 
+  }
+  if(current.bpCuffOn){
     // BP colour thresholds (based on systolic)
     const BPcolor = bpSysRound >= 220 ? 'var(--red)'
                 : bpSysRound >= 111 ? 'var(--green)'
