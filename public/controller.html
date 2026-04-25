@@ -16,8 +16,8 @@
       --muted2:  #c2c2c2;
       --cyan:    #56e3ff;
       --green:   #69f58d;
-      --yellow:  #fff06a;
-      --orange:  #ffba66;
+      --yellow:  #ffeb3b;
+      --orange:  #ff9900;
       --red:     #ff6b86;
       --deep:    #b56cff;
       --label:   #d3d3d3;
@@ -293,6 +293,16 @@ socket.on('state', (s) => {
     targetState = { ...targetState, ...s.target };
   }
   syncUI();
+  // Sync speed button UI to transitionTime from state
+  if (typeof currentState.transitionTime === 'number') {
+    document.querySelectorAll('.speed-btn').forEach(b => {
+      if (parseFloat(b.dataset.t) === currentState.transitionTime) {
+        b.classList.add('active');
+      } else {
+        b.classList.remove('active');
+      }
+    });
+  }
 });
 
 function send(patch) {
