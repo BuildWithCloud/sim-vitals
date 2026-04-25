@@ -285,15 +285,12 @@ socket.on('disconnect', () => { badge.textContent = 'DISCONNECTED'; badge.classN
 
 let currentState = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
 let targetState = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
-let bufferedManualState = { spo2: 98, hr: 72, bpsys: 120, bpdia: 80 };
-let offFingerActive = false;
 
 socket.on('state', (s) => {
   currentState = { ...currentState, ...s };
   if (s.target) {
     targetState = { ...targetState, ...s.target };
   }
-  offFingerActive = !currentState.SpO2On;
   syncUI();
 });
 
@@ -310,8 +307,8 @@ function syncUI() {
   const roundedHr = Math.round(currentState.hr);
   const roundedBPSys = Math.round(currentState.bpsys);
   const roundedBPDia = Math.round(currentState.bpdia);
-  const viewSpo2 = offFingerActive ? bufferedManualState.spo2 : targetState.spo2;
-  const viewHr = offFingerActive ? bufferedManualState.hr : targetState.hr;
+  const viewSpo2 = targetState.spo2;
+  const viewHr = targetState.hr;
   const viewBPSys = targetState.bpsys;
   const viewBPDia = targetState.bpdia;
   const roundedViewSpo2 = Math.round(viewSpo2);
@@ -393,54 +390,23 @@ document.getElementById('buttons').addEventListener('click', (e) => {
   }
 
   const nextIsOn = !currentState.SpO2On;
-  offFingerActive = !nextIsOn;
-
-  if (!nextIsOn) {
-    send({ SpO2On: false, snap: true });
-    return;
-  }
-
-  const spo2 = parseFloat(document.getElementById('spo2-slider').value);
-  const hr = parseFloat(document.getElementById('hr-slider').value);
-  bufferedManualState = { spo2, hr };
-  send({ spo2, hr, SpO2On: true, snap: true });
+  send({ SpO2On: nextIsOn, snap: true });
 });
 
 // ── Sliders ───────────────────────────────────────────
-function hookSlider(id, valId, key, suffix = '', syncFinger = true, fingerControlled = true) {
+function hookSlider(id, valId, key, suffix = '') {
   const slider = document.getElementById(id);
   const label  = document.getElementById(valId);
   slider.addEventListener('input', () => {
     const v = parseFloat(slider.value);
-    bufferedManualState[key] = v;
-    label.textContent = `TGT ${Math.round(v)}${suffix}`;
-    if (offFingerActive && fingerControlled) {
-      send({
-        spo2: bufferedManualState.spo2,
-        hr: bufferedManualState.hr,
-        SpO2On: false,
-        snap: true
-      });
-      return;
-    }
-
-    const patch = { [key]: v };
-    if (syncFinger) {
-      patch.SpO2On = true;
-    }
-    if (offFingerActive) {
-      patch.spo2 = bufferedManualState.spo2;
-      patch.hr = bufferedManualState.hr;
-      patch.SpO2On = false;
-      patch.snap = true;
-    }
-    send(patch);
+    label.textContent = `${Math.round(v)}${suffix}`;
+    send({ [key]: v });
   });
 }
 hookSlider('spo2-slider', 'spo2-slider-val', 'spo2', '%');
 hookSlider('hr-slider',   'hr-slider-val',   'hr');
-hookSlider('bpsys-slider', 'bpsys-slider-val', 'bpsys', '', false, false);
-hookSlider('bpdia-slider', 'bpdia-slider-val', 'bpdia', '', false, false);
+hookSlider('bpsys-slider', 'bpsys-slider-val', 'bpsys');
+hookSlider('bpdia-slider', 'bpdia-slider-val', 'bpdia');
 
 // ── Transition speed ──────────────────────────────────
 document.getElementById('speed-btns').addEventListener('click', (e) => {
