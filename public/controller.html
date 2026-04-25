@@ -250,7 +250,7 @@
     
     <div class="slider-row">
       <span class="slider-name">BPsys</span>
-      <input type="range" id="bpsys-slider" min="20" max="200" value="120" step="1">
+      <input type="range" id="bpsys-slider" min="20" max="250" value="120" step="1">
       <span class="slider-values">
         <span class="slider-val" id="bpsys-slider-val">120</span>
       </span>
@@ -329,7 +329,14 @@ function syncUI() {
     liveSpo2El.style.color = spo2Color;
 
     liveHrEl.innerHTML = `${roundedHr}<span style="font-size:14px;opacity:0.5"> bpm</span>`;
-    liveHrEl.style.color = 'var(--label)';
+    // HR colour thresholds
+    const HRcolor = roundedHr >= 131 ? 'var(--red)'
+          : roundedHr >= 111 ? 'var(--orange)'
+          : roundedHr >= 91  ? 'var(--yellow)'
+          : roundedHr > 51   ? 'var(--green)'
+          : roundedHr >= 41  ? 'var(--yellow)'
+          : 'var(--red)';
+    liveHrEl.style.color = HRcolor;
   } else {
     liveSpo2El.innerHTML = '<span style="color:var(--label)">---</span>';
     liveSpo2El.style.color = 'var(--label)';
@@ -339,7 +346,13 @@ function syncUI() {
 
   if (currentState.bpCuffOn) {
     liveBpEl.innerHTML = `${roundedBPSys}/${roundedBPDia}<span style="font-size:14px;opacity:0.5"> mmHg</span>`;
-    liveBpEl.style.color = 'var(--label)';
+    // BP colour thresholds (based on systolic)
+    const BPcolor = roundedBPSys >= 220 ? 'var(--red)'
+          : roundedBPSys >= 111 ? 'var(--green)'
+          : roundedBPSys >= 101  ? 'var(--yellow)'
+          : roundedBPSys >= 91   ? 'var(--orange)'
+          : 'var(--red)';
+    liveBpEl.style.color = BPcolor;
   } else {
     liveBpEl.innerHTML = '<span style="color:var(--label)">---/---</span><span style="font-size:14px;opacity:0.5"> mmHg</span>';
     liveBpEl.style.color = 'var(--label)';
