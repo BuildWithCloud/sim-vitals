@@ -121,7 +121,7 @@
 
     .slider-row {
       display: grid;
-      grid-template-columns: 80px 1fr 92px;
+      grid-template-columns: 40px 1fr 40px;
       align-items: center;
       gap: 12px;
     }
@@ -235,15 +235,15 @@
       <span class="slider-name">SpO₂</span>
       <input type="range" id="spo2-slider" min="50" max="100" value="98" step="1">
       <span class="slider-values">
-        <span class="slider-val" id="spo2-slider-val">TGT 98%</span>
+        <span class="slider-val" id="spo2-slider-val">98%</span>
       </span>
     </div>
 
     <div class="slider-row">
-      <span class="slider-name">Heart Rate</span>
+      <span class="slider-name">HR</span>
       <input type="range" id="hr-slider" min="20" max="200" value="72" step="1">
       <span class="slider-values">
-        <span class="slider-val" id="hr-slider-val">TGT 72</span>
+        <span class="slider-val" id="hr-slider-val">72</span>
       </span>
     </div>
     
@@ -251,7 +251,7 @@
       <span class="slider-name">BPsys</span>
       <input type="range" id="bpsys-slider" min="20" max="200" value="120" step="1">
       <span class="slider-values">
-        <span class="slider-val" id="bpsys-slider-val">TGT 120</span>
+        <span class="slider-val" id="bpsys-slider-val">120</span>
       </span>
     </div>
 
@@ -259,7 +259,7 @@
       <span class="slider-name">BPDia</span>
       <input type="range" id="bpdia-slider" min="20" max="200" value="80" step="1">
       <span class="slider-values">
-        <span class="slider-val" id="bpdia-slider-val">TGT 80</span>
+        <span class="slider-val" id="bpdia-slider-val">80</span>
       </span>
     </div>
 
@@ -352,10 +352,10 @@ function syncUI() {
   document.getElementById('hr-slider').value   = viewHr;
   document.getElementById('bpsys-slider').value = viewBPSys;
   document.getElementById('bpdia-slider').value = viewBPDia;
-  document.getElementById('spo2-slider-val').textContent = `TGT ${roundedViewSpo2}%`;
-  document.getElementById('hr-slider-val').textContent   = `TGT ${roundedViewHr}`;
-  document.getElementById('bpsys-slider-val').textContent = `TGT ${roundedViewBPSys}`;
-  document.getElementById('bpdia-slider-val').textContent = `TGT ${roundedViewBPDia}`;
+  document.getElementById('spo2-slider-val').textContent = `${roundedViewSpo2}%`;
+  document.getElementById('hr-slider-val').textContent   = `${roundedViewHr}`;
+  document.getElementById('bpsys-slider-val').textContent = `${roundedViewBPSys}`;
+  document.getElementById('bpdia-slider-val').textContent = `${roundedViewBPDia}`;
 
   const toggleBtn = document.getElementById('finger-toggle-btn');
   const toggleTitle = document.getElementById('finger-toggle-title');
