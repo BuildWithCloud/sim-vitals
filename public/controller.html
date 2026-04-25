@@ -30,6 +30,17 @@
       font-family: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Consolas', monospace;
     }
 
+      /* Prevent scrolling on large screens (e.g., iPad) */
+      @media (min-width: 768px) and (min-height: 900px) {
+        html, body {
+          overflow: hidden;
+          height: 100%;
+          overscroll-behavior: none;
+          -webkit-overflow-scrolling: auto;
+          touch-action: none;
+        }
+      }
+
     /* ── Layout ── */
     .page { max-width: 760px; margin: 0 auto; padding: 28px 24px 60px; }
 
