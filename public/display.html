@@ -183,7 +183,7 @@
 
 <script>
 // ── State ─────────────────────────────────────────────
-let current = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true};
+let current = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, showColours: true};
 
 // ── Socket ────────────────────────────────────────────
 const socket = io();
@@ -216,14 +216,20 @@ function animate() {
     hrEl.textContent = hrRound;
 
     // SpO₂ colour thresholds
+    if(current.showColours){
     const SpO2color = spo2Round >= 96 ? 'var(--green)'
                 : spo2Round >= 94 ? 'var(--yellow)'
                 : spo2Round >= 92 ? 'var(--orange)'
                 : 'var(--red)';
     spo2El.style.color = SpO2color;
+    }
+    else{
+      spo2El.style.color = 'var(--label)';
+    }
     
 
     // HR colour thresholds
+    if(current.showColours){
     const HRcolor = hrRound >= 131 ? 'var(--red)'
                 : hrRound >= 111 ? 'var(--orange)'
                 : hrRound >= 91  ? 'var(--yellow)'
@@ -231,13 +237,23 @@ function animate() {
                 : hrRound >= 41  ? 'var(--yellow)'
                 : 'var(--red)';
     hrEl.style.color = HRcolor;
+    }
+    else{
+      hrEl.style.color = 'var(--label)';
+    }
 
+    // Resp Rate colour thresholds
+    if (current.showColours) {
     const RespColor = respRound >= 25 ? 'var(--red)'
                 : respRound >= 21 ? 'var(--orange)'
                 : respRound >= 12 ? 'var(--green)'
                 : respRound >= 9  ? 'var(--yellow)'
                 : 'var(--red)';
     respEl.style.color = RespColor;
+    }
+    else{
+      respEl.style.color = 'var(--label)';
+    }
     
   }
   else{
@@ -251,12 +267,17 @@ function animate() {
 
   if(current.bpCuffOn){
     // BP colour thresholds (based on systolic)
+    if(current.showColours){
     const BPcolor = bpSysRound >= 220 ? 'var(--red)'
                 : bpSysRound >= 111 ? 'var(--green)'
                 : bpSysRound >= 101  ? 'var(--yellow)'
                 : bpSysRound >= 91   ? 'var(--orange)'
                 : 'var(--red)';
     bpEl.style.color = BPcolor;
+    }
+    else{
+      bpEl.style.color = 'var(--label)';
+    }
     bpEl.textContent = `${bpSysRound}/${bpDiaRound}`;
   }
   else{
