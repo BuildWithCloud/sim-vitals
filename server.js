@@ -19,6 +19,7 @@ let targetState = {
   bpdia: 80,
   SpO2On: true,
   bpCuffOn: true,
+  showColours: true,
   transitionTime: 20
 };
 
@@ -31,6 +32,7 @@ let liveState = {
   bpdia: 80,
   SpO2On: true,
   bpCuffOn: true,
+  showColours: true,
   transitionTime: 20
 };
 
@@ -72,6 +74,7 @@ function beginTransition({ immediate = false } = {}) {
 
   liveState.SpO2On = targetState.SpO2On;
   liveState.bpCuffOn = targetState.bpCuffOn;
+  liveState.showColours = targetState.showColours;
   liveState.transitionTime = targetState.transitionTime;
 
   if (durationMs === 0) {

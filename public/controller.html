@@ -231,6 +231,10 @@
       <div class="s-vals" id="cuff-toggle-desc">Click to turn cuff OFF and show dashes</div>
     </button>
 
+    <button class="contrl-btn sensor-toggle on-finger" id="colour-toggle-btn" type="button">
+      <div class="s-name" id="colour-toggle-title">Show Colours: ON</div>
+      <div class="s-vals" id="colour-toggle-desc">Click to turn colours OFF and show white values</div>
+    </button>
 
   </div>
 
@@ -298,8 +302,8 @@ const badge  = document.getElementById('conn-badge');
 socket.on('connect',    () => { badge.textContent = 'CONNECTED'; badge.className = 'conn-badge ok'; });
 socket.on('disconnect', () => { badge.textContent = 'DISCONNECTED'; badge.className = 'conn-badge err'; });
 
-let currentState = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
-let targetState = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, transitionTime: 20 };
+let currentState = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, showColours: true, transitionTime: 20 };
+let targetState = { spo2: 98, resp: 16, hr: 72, bpsys: 120, bpdia: 80, SpO2On: true, bpCuffOn: true, showColours: true, transitionTime: 20 };
 
 socket.on('state', (s) => {
   currentState = { ...currentState, ...s };
@@ -350,29 +354,44 @@ function syncUI() {
   const liveBpEl = document.getElementById('live-bp-val');
 
   if (currentState.SpO2On) {
-    liveSpo2El.innerHTML = `${roundedSpo2}<span style="font-size:14px;opacity:0.5">%</span>`;
-    const spo2Color = roundedSpo2 >= 95 ? 'var(--green)'
-                    : roundedSpo2 >= 90 ? 'var(--yellow)'
-                    : 'var(--red)';
-    liveSpo2El.style.color = spo2Color;
+      liveSpo2El.innerHTML = `${roundedSpo2}<span style="font-size:14px;opacity:0.5">%</span>`;
+    if (currentState.showColours) {
+      const spo2Color = roundedSpo2 >= 95 ? 'var(--green)'
+                      : roundedSpo2 >= 90 ? 'var(--yellow)'
+                      : 'var(--red)';
+      liveSpo2El.style.color = spo2Color;
+    }
+    else{
+      liveSpo2El.style.color = 'var(--label)';
+    }
 
     liveHrEl.innerHTML = `${roundedHr}<span style="font-size:14px;opacity:0.5"> bpm</span>`;
     // HR colour thresholds
-    const HRcolor = roundedHr >= 131 ? 'var(--red)'
-          : roundedHr >= 111 ? 'var(--orange)'
-          : roundedHr >= 91  ? 'var(--yellow)'
-          : roundedHr > 51   ? 'var(--green)'
-          : roundedHr >= 41  ? 'var(--yellow)'
-          : 'var(--red)';
-    liveHrEl.style.color = HRcolor;
+    if (currentState.showColours) {
+      const HRcolor = roundedHr >= 131 ? 'var(--red)'
+            : roundedHr >= 111 ? 'var(--orange)'
+            : roundedHr >= 91  ? 'var(--yellow)'
+            : roundedHr > 51   ? 'var(--green)'
+            : roundedHr >= 41  ? 'var(--yellow)'
+            : 'var(--red)';
+      liveHrEl.style.color = HRcolor;
+    }
+    else{
+      liveHrEl.style.color = 'var(--label)';
+    }
     
     // Resp
-    const RespColor = roundedResp >= 25 ? 'var(--red)'
-                : roundedResp >= 21 ? 'var(--orange)'
-                : roundedResp >= 12 ? 'var(--green)'
-                : roundedResp >= 9  ? 'var(--yellow)'
-                : 'var(--red)';
-    liveRespEl.style.color = RespColor;
+    if (currentState.showColours) {
+      const RespColor = roundedResp >= 25 ? 'var(--red)'
+                  : roundedResp >= 21 ? 'var(--orange)'
+                  : roundedResp >= 12 ? 'var(--green)'
+                  : roundedResp >= 9  ? 'var(--yellow)'
+                  : 'var(--red)';
+      liveRespEl.style.color = RespColor;
+    }
+    else{
+      liveRespEl.style.color = 'var(--label)';
+    }
     liveRespEl.innerHTML = `${roundedResp}<span style="font-size:14px;opacity:0.5"> bpm</span>`;
   } else {
     liveSpo2El.innerHTML = '<span style="color:var(--label)">---</span>';
@@ -387,12 +406,17 @@ function syncUI() {
   if (currentState.bpCuffOn) {
     liveBpEl.innerHTML = `${roundedBPSys}/${roundedBPDia}<span style="font-size:14px;opacity:0.5"> mmHg</span>`;
     // BP colour thresholds (based on systolic)
-    const BPcolor = roundedBPSys >= 220 ? 'var(--red)'
-          : roundedBPSys >= 111 ? 'var(--green)'
-          : roundedBPSys >= 101  ? 'var(--yellow)'
-          : roundedBPSys >= 91   ? 'var(--orange)'
-          : 'var(--red)';
-    liveBpEl.style.color = BPcolor;
+    if (currentState.showColours) {
+      const BPcolor = roundedBPSys >= 220 ? 'var(--red)'
+            : roundedBPSys >= 111 ? 'var(--green)'
+            : roundedBPSys >= 101  ? 'var(--yellow)'
+            : roundedBPSys >= 91   ? 'var(--orange)'
+            : 'var(--red)';
+      liveBpEl.style.color = BPcolor;
+    }
+    else{
+      liveBpEl.style.color = 'var(--label)';
+    }
   } else {
     liveBpEl.innerHTML = '<span style="color:var(--label)">---/---</span><span style="font-size:14px;opacity:0.5"> mmHg</span>';
     liveBpEl.style.color = 'var(--label)';
@@ -431,17 +455,35 @@ function syncUI() {
   cuffDesc.textContent = cuffIsOn
     ? 'Click to turn cuff OFF and show dashes'
     : 'Click to turn cuff ON and show BP values';
+  
+  const colourBtn = document.getElementById('colour-toggle-btn');
+  const colourTitle = document.getElementById('colour-toggle-title');
+  const colourDesc = document.getElementById('colour-toggle-desc');
+  const colourIsOn = currentState.showColours;
+  colourBtn.classList.remove('on-finger', 'off-finger');
+  colourBtn.classList.add(colourIsOn ? 'on-finger' : 'off-finger');
+  colourTitle.textContent = `Show Colours: ${colourIsOn ? 'ON' : 'OFF'}`;
+  colourDesc.textContent = colourIsOn
+    ? 'Click to turn colours OFF and show white values'
+    : 'Click to turn colours ON and show coloured values based on thresholds';
 }
 
 // ── Control buttons ──────────────────────────────────
 document.getElementById('buttons').addEventListener('click', (e) => {
   const fingerBtn = e.target.closest('#finger-toggle-btn');
   const cuffBtn = e.target.closest('#cuff-toggle-btn');
-  if (!fingerBtn && !cuffBtn) return;
+  const colourBtn = e.target.closest('#colour-toggle-btn');
+  if (!fingerBtn && !cuffBtn && !colourBtn) return;
 
   if (cuffBtn) {
     const nextCuffOn = !currentState.bpCuffOn;
     send({ bpCuffOn: nextCuffOn, snap: true });
+    return;
+  }
+
+  if (colourBtn) {
+    const nextColourOn = !currentState.showColours;
+    send({ showColours: nextColourOn });
     return;
   }
 
