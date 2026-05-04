@@ -367,6 +367,12 @@ function syncUI() {
     liveHrEl.style.color = HRcolor;
     
     // Resp
+    const RespColor = roundedResp >= 25 ? 'var(--red)'
+                : roundedResp >= 21 ? 'var(--orange)'
+                : roundedResp >= 12 ? 'var(--green)'
+                : roundedResp >= 9  ? 'var(--yellow)'
+                : 'var(--red)';
+    liveRespEl.style.color = RespColor;
     liveRespEl.innerHTML = `${roundedResp}<span style="font-size:14px;opacity:0.5"> bpm</span>`;
   } else {
     liveSpo2El.innerHTML = '<span style="color:var(--label)">---</span>';
